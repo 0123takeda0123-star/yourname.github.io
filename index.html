@@ -59,10 +59,9 @@
   }
 
   /* スイング */
-  .running .needle {  
-    animation: swing linear infinite;
-  　animation-duration: 1s; 
-  }
+.running .needle {
+  animation: none;
+}
 
   @keyframes swing {
     0%   { transform: rotate(-35deg); }
@@ -102,6 +101,41 @@ let isRunning = false;
 let nextTime = 0;
 let intervalId = null;
 
+let lastPhase = 0;
+
+function updateNeedle() {
+  const bpm = getBPM();
+  const period = 60 / bpm; // 片道
+
+  const t = ctx.currentTime;
+
+  // 0〜1の周期（往復）
+  const phase = (t / period) % 2;
+
+  // -1 〜 1 に変換（左 - 右）
+  let angle;
+  if (phase < 1) {
+    angle = -1 + (phase * 2); // 左→右
+  } else {
+    angle = 1 - ((phase - 1) * 2); // 右→左
+  }
+
+  document.querySelector(".needle").style.transform =
+    `rotate(${angle * 35}deg)`;
+
+  // 端点検出（音トリガー）
+  const crossedLeft = (lastPhase > 1 && phase <= 1);
+  const crossedRight = (lastPhase < 1 && phase >= 1);
+
+  if (crossedLeft || crossedRight) {
+    beep(ctx.currentTime);
+  }
+
+  lastPhase = phase;
+
+  requestAnimationFrame(updateNeedle);
+}
+  
 /* BPM計算 */
 function getBPM() {
   const now = new Date();
@@ -154,12 +188,14 @@ async function start() {
   await ctx.resume();
 
   isRunning = true;
+
   document.getElementById("metro").classList.remove("idle");
-  document.getElementById("metro").classList.add("running");
 
   nextTime = ctx.currentTime;
 
-  intervalId = setInterval(scheduler, 25);
+  updateNeedle(); // ←追加
+
+  intervalId = setInterval(scheduler, 1000);
 }
 
 /* stop */
