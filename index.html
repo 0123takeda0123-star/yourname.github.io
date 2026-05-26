@@ -83,6 +83,7 @@
 <div class="panel">
   <div class="bpm" id="bpm">-- BPM</div>
   <div class="mode" id="mode">click pin to start</div>
+  <div class="mode" id="view"></div>
 
   <div class="metronome idle" id="metro">
     <div class="needle"></div>
@@ -208,7 +209,9 @@ document.getElementById("metro").addEventListener("click", () => {
 
 /* mode toggle */
 document.getElementById("toggle").addEventListener("click", () => {
-  mode = mode === "date" ? "minute *2" : "date *4";
+  mode = mode === "date" ? "minute" : "date";
+  const label = mode === "date" ? "minute *2" : "date *4";
+  document.getElementById("view").textContent = label;
 });
 </script>
 
